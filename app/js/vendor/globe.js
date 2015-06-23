@@ -169,7 +169,6 @@ DAT.Globe = function(container, opts) {
       color = colorFn(data[i+2]);
       addPoint(lat, lng, size, color);
     }
-    debugger
   };
 
   function addPoint(lat, lng, size, color) {
