@@ -69,8 +69,8 @@ DAT.Globe = function(container, opts) {
   };
 
   var camera, scene, renderer, w, h;
-  var mesh, atmosphere, point;
-
+  var mesh, atmosphere;
+  var pointArray = [];
   var overRenderer;
 
   var curZoomSpeed = 0;
@@ -97,9 +97,6 @@ DAT.Globe = function(container, opts) {
     camera = new THREE.PerspectiveCamera(30, w / h, 1, 10000);
     camera.position.z = distance;
 
-    scene = new THREE.Scene();
-
-    var geometry = new THREE.SphereGeometry(200, 40, 30);
 
     shader = Shaders['earth'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
@@ -112,8 +109,12 @@ DAT.Globe = function(container, opts) {
       fragmentShader: shader.fragmentShader
     });
 
+    var geometry = new THREE.SphereGeometry(200, 40, 30);
+
     mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.y = Math.PI;
+
+    scene = new THREE.Scene();
     scene.add(mesh);
 
     shader = Shaders['atmosphere'];
@@ -131,11 +132,6 @@ DAT.Globe = function(container, opts) {
     mesh = new THREE.Mesh(geometry, material);
     mesh.scale.set( 1.1, 1.1, 1.1 );
     scene.add(mesh);
-
-    geometry = new THREE.BoxGeometry(0.75, 0.75, 1);
-    geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-0.5));
-
-    point = new THREE.Mesh(geometry);
 
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(w, h);
@@ -166,82 +162,21 @@ DAT.Globe = function(container, opts) {
 
     opts.animated = opts.animated || false;
     this.is_animated = opts.animated;
-    opts.format = opts.format || 'magnitude'; // other option is 'legend'
-    if (opts.format === 'magnitude') {
-      step = 3;
-      colorFnWrapper = function(data, i) { return colorFn(data[i+2]); }
-    } else if (opts.format === 'legend') {
-      step = 4;
-      colorFnWrapper = function(data, i) { return colorFn(data[i+3]); }
-    } else {
-      throw('error: format not supported: '+opts.format);
-    }
-
-    if (opts.animated) {
-      if (this._baseGeometry === undefined) {
-        this._baseGeometry = new THREE.Geometry();
-        for (i = 0; i < data.length; i += step) {
-          lat = data[i];
-          lng = data[i + 1];
-//        size = data[i + 2];
-          color = colorFnWrapper(data,i);
-          size = 0;
-          addPoint(lat, lng, size, color, this._baseGeometry);
-        }
-      }
-      if(this._morphTargetId === undefined) {
-        this._morphTargetId = 0;
-      } else {
-        this._morphTargetId += 1;
-      }
-      opts.name = opts.name || 'morphTarget'+this._morphTargetId;
-    }
-    var subgeo = new THREE.Geometry();
-    for (i = 0; i < data.length; i += step) {
+    for (i = 0; i < data.length; i += 3) {
       lat = data[i];
       lng = data[i + 1];
-      color = colorFnWrapper(data,i);
-      size = data[i + 2];
-      size = size*200;
-      addPoint(lat, lng, size, color, subgeo);
+      size = data[i + 2] * 200; //magnitude
+      color = colorFn(data[i+2]);
+      addPoint(lat, lng, size, color);
     }
-    if (opts.animated) {
-      this._baseGeometry.morphTargets.push({'name': opts.name, vertices: subgeo.vertices});
-    } else {
-      this._baseGeometry = subgeo;
-    }
-
+    debugger
   };
 
-  function createPoints() {
-    if (this._baseGeometry !== undefined) {
-      if (this.is_animated === false) {
-        this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
-              color: 0xffffff,
-              vertexColors: THREE.FaceColors,
-              morphTargets: false
-            }));
-      } else {
-        if (this._baseGeometry.morphTargets.length < 8) {
-          console.log('t l',this._baseGeometry.morphTargets.length);
-          var padding = 8-this._baseGeometry.morphTargets.length;
-          console.log('padding', padding);
-          for(var i=0; i<=padding; i++) {
-            console.log('padding',i);
-            this._baseGeometry.morphTargets.push({'name': 'morphPadding'+i, vertices: this._baseGeometry.vertices});
-          }
-        }
-        this.points = new THREE.Mesh(this._baseGeometry, new THREE.MeshBasicMaterial({
-              color: 0xffffff,
-              vertexColors: THREE.FaceColors,
-              morphTargets: true
-            }));
-      }
-      scene.add(this.points);
-    }
-  }
+  function addPoint(lat, lng, size, color) {
 
-  function addPoint(lat, lng, size, color, subgeo) {
+    var geometry = new THREE.BoxGeometry(0.75, 0.75, 1);
+    geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-0.5));
+    var point = new THREE.Mesh(geometry);
 
     var phi = (90 - lat) * Math.PI / 180;
     var theta = (180 - lng) * Math.PI / 180;
@@ -256,16 +191,16 @@ DAT.Globe = function(container, opts) {
     point.updateMatrix();
 
     for (var i = 0; i < point.geometry.faces.length; i++) {
-
       point.geometry.faces[i].color = color;
-
     }
     if(point.matrixAutoUpdate){
       point.updateMatrix();
     }
-    subgeo.merge(point.geometry, point.matrix);
-  }
 
+    // store references to each point
+    pointArray.push(point);
+    scene.add(point);
+  }
   function onMouseDown(event) {
     event.preventDefault();
 
@@ -345,17 +280,7 @@ DAT.Globe = function(container, opts) {
     requestAnimationFrame(animate);
     render();
   }
-  resetData = function()
-  {
-    if (this.points === undefined) return;
 
-    this.is_animated = false;
-
-    scene.remove(this.points);
-    delete this.points;
-    delete this._morphTargetId;
-    delete this._baseGeometry;
-  }
   function render() {
     /** custom rotation */
     target.x += .001
@@ -379,40 +304,12 @@ DAT.Globe = function(container, opts) {
   this.animate = animate;
   target.y = 0.3
 
-  this.__defineGetter__('time', function() {
-    return this._time || 0;
-  });
-
-  this.__defineSetter__('time', function(t) {
-    var validMorphs = [];
-    var morphDict = this.points.morphTargetDictionary;
-    for(var k in morphDict) {
-      if(k.indexOf('morphPadding') < 0) {
-        validMorphs.push(morphDict[k]);
-      }
-    }
-    validMorphs.sort();
-    var l = validMorphs.length-1;
-    var scaledt = t*l+1;
-    var index = Math.floor(scaledt);
-    for (i=0;i<validMorphs.length;i++) {
-      this.points.morphTargetInfluences[validMorphs[i]] = 0;
-    }
-    var lastIndex = index - 1;
-    var leftover = scaledt - index;
-    if (lastIndex >= 0) {
-      this.points.morphTargetInfluences[lastIndex] = 1 - leftover;
-    }
-    this.points.morphTargetInfluences[index] = leftover;
-    this._time = t;
-  });
-
   this.addData = addData;
-  this.createPoints = createPoints;
-  this.resetData = resetData;
+  // this.createPoints = createPoints;
+  // this.resetData = resetData;
   this.renderer = renderer;
   this.scene = scene;
-
+  this.pointArray = pointArray
   return this;
 
 };

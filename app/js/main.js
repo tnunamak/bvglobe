@@ -13,7 +13,7 @@ if(!Detector.webgl){
 
 
   xhr = new XMLHttpRequest();
-  xhr.open('GET', '/globe/data.json', true);
+  xhr.open('GET', '/globe/fake.json', true);
   xhr.onreadystatechange = function(e) {
     if (xhr.readyState === 4) {
       if (xhr.status === 200) {
