@@ -1,10 +1,9 @@
-if(!Detector.webgl){
+$(function () {
+  if(!Detector.webgl){
       Detector.addGetWebGLMessage();
     } else {
-
-      var years = ['1990','1995','2000'];
-      var container = document.getElementById('container');
-      var globe = new DAT.Globe(container);
+      var container = $('#container');
+      var globe = new DAT.Globe(container[0]);
 
       console.log(globe);
       var i, tweens = [];
@@ -36,7 +35,7 @@ if(!Detector.webgl){
 
 
       xhr = new XMLHttpRequest();
-      xhr.open('GET', '/globe/data.json', true);
+      xhr.open('GET', '/globe/fake.json', true);
       xhr.onreadystatechange = function(e) {
         if (xhr.readyState === 4) {
           if (xhr.status === 200) {
@@ -49,20 +48,20 @@ if(!Detector.webgl){
             settime(globe,0)();
             globe.animate();
             document.body.style.backgroundImage = 'none'; // remove loading
-            // beginRotation();
           }
         }
       };
       xhr.send(null);
     }
-    function beginRotation () {
-      globe.target.y = 0.3
-      setInterval(function () {
-        globe.target.x = globe.target.x + 0.0001;
-      }, 1);
-    }
-    function changeData (x) {
-      new TWEEN.Tween(globe).to({ time: x },500).easing(TWEEN.Easing.Cubic.EaseOut).start();
+    window.changeData = function (i) {
+      globe.resetData();
+      globe.addData(window.data[i][1], {
+        format: 'magnitude',
+        name: window.data[i][0],
+        animated: true
+      });
+      globe.createPoints();
+      // new TWEEN.Tween(globe).to({ time: i/3 },500).easing(TWEEN.Easing.Cubic.EaseOut).start();
     }
 // (function() {
 
@@ -104,3 +103,5 @@ if(!Detector.webgl){
 // }
 
 // })();
+})
+

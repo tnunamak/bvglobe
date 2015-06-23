@@ -107,12 +107,10 @@ DAT.Globe = function(container, opts) {
     uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'world.jpg');
 
     material = new THREE.ShaderMaterial({
-
-          uniforms: uniforms,
-          vertexShader: shader.vertexShader,
-          fragmentShader: shader.fragmentShader
-
-        });
+      uniforms: uniforms,
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader
+    });
 
     mesh = new THREE.Mesh(geometry, material);
     mesh.rotation.y = Math.PI;
@@ -122,15 +120,13 @@ DAT.Globe = function(container, opts) {
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
 
     material = new THREE.ShaderMaterial({
-
-          uniforms: uniforms,
-          vertexShader: shader.vertexShader,
-          fragmentShader: shader.fragmentShader,
-          side: THREE.BackSide,
-          blending: THREE.AdditiveBlending,
-          transparent: true
-
-        });
+      uniforms: uniforms,
+      vertexShader: shader.vertexShader,
+      fragmentShader: shader.fragmentShader,
+      side: THREE.BackSide,
+      blending: THREE.AdditiveBlending,
+      transparent: true
+    });
 
     mesh = new THREE.Mesh(geometry, material);
     mesh.scale.set( 1.1, 1.1, 1.1 );
@@ -349,8 +345,21 @@ DAT.Globe = function(container, opts) {
     requestAnimationFrame(animate);
     render();
   }
+  resetData = function()
+  {
+    if (this.points === undefined) return;
 
+    this.is_animated = false;
+
+    scene.remove(this.points);
+    delete this.points;
+    delete this._morphTargetId;
+    delete this._baseGeometry;
+  }
   function render() {
+    /** custom rotation */
+    target.x += .001
+    //
     zoom(curZoomSpeed);
 
     rotation.x += (target.x - rotation.x) * 0.1;
@@ -368,8 +377,7 @@ DAT.Globe = function(container, opts) {
 
   init();
   this.animate = animate;
-  this.target = target;
-
+  target.y = 0.3
 
   this.__defineGetter__('time', function() {
     return this._time || 0;
@@ -401,6 +409,7 @@ DAT.Globe = function(container, opts) {
 
   this.addData = addData;
   this.createPoints = createPoints;
+  this.resetData = resetData;
   this.renderer = renderer;
   this.scene = scene;
 
