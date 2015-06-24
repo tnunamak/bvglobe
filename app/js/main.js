@@ -30,7 +30,6 @@ $(function () {
       cache: false,
       success: function (data) {
         window.data = data;
-        // globe.resetData()
         globe.addData(data);
         dfd.resolve();
       },
