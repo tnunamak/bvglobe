@@ -1,9 +1,11 @@
-$(function() {
+$(function () {
   if(!Detector.webgl){
     Detector.addGetWebGLMessage();
   } else {
     var container = $('#container')[0];
-    window.globe = new DAT.Globe(container);
+    window.globe = new DAT.Globe(container, {
+      rotate: false
+    });
     console.log(globe);
 
     var xhr = new XMLHttpRequest();
@@ -13,7 +15,7 @@ $(function() {
       .then(function () {
         document.body.style.backgroundImage = 'none'; // remove loading
       });
-    setInterval(requestData,1000);
+    // setInterval(requestData,1000);
     globe.animate();
   }
 

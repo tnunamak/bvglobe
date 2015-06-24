@@ -14,11 +14,16 @@
 var DAT = DAT || {};
 
 DAT.Globe = function(container, opts) {
-  opts = opts || {};
-  var c = new THREE.Color();
+  var opts = opts || {};
 
+  var c = new THREE.Color();
   var colorFn = opts.colorFn || function(x) {
-    c.setHSL( ( 0.6 - ( x * 0.5 ) ), 1.0, 0.5 );
+    var x = x * 0.01
+    var hue = ( 0.6 - ( x * 0.005 ) );
+    var saturation = 1.0;
+    var lightness = 0.5;
+    c.setHSL(hue, saturation, lightness);
+
     return c;
   };
   var imgDir = opts.imgDir || '/globe/';
@@ -162,14 +167,26 @@ DAT.Globe = function(container, opts) {
   function addData(data) {
     var lat, lng, size, color;
 
+    function normalize (data) {
+      var nums = _.pluck(data, 'count');
+      var ratio = Math.max.apply(Math, nums) / 100;
+      for (var i = 0; i < nums.length; i++) {
+        nums[i] = Math.round(nums[i] / ratio);
+      }
+      return nums;
+    }
+
+    var normalizedMagnitudes = normalize(data);
+
     for (var i = 0; i < data.length; i++) {
       lat = data[i].latitude;
       lng = data[i].longitude;
-      size = data[i].count / 10; //magnitude
+      size = normalizedMagnitudes[i]; //magnitude
       color = colorFn(size);
 
       addPoint(lat, lng, size, color);
     }
+
   };
 
   function addPoint(lat, lng, size, color) {
@@ -289,8 +306,12 @@ DAT.Globe = function(container, opts) {
 
   function render() {
     /** custom rotation */
-    target.x += .001
+    if(opts.rotate)
+      target.x += .001
     //
+    for (var i = 0; i < pointArray.length; i++) {
+      // loop through and decay each point
+    }
     zoom(curZoomSpeed);
 
     rotation.x += (target.x - rotation.x) * 0.1;

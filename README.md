@@ -1,1 +1,7 @@
-TL;DR - `npm install && grunt serve`
+#TL;DR
+
+### Install
+`npm install`
+
+### Serve
+`grunt serve`
