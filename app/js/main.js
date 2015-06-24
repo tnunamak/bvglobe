@@ -32,7 +32,6 @@ $(function () {
       cache: false,
       success: function (data) {
         window.data = data;
-        // globe.resetData()
         var bucketSize = 1;
         _.each(_.groupBy(data, function(item, i) {
           return Math.floor(i / bucketSize);
@@ -42,7 +41,6 @@ $(function () {
           var fuzz = Math.random() * fuzzSize + 1 - fuzzSize;
           setTimeout(_.partial(globe.addData, bucket), i * step * fuzz);
         });
-
         dfd.resolve();
       },
       error: function (jqXHR, textStatus, errorThrown) {
