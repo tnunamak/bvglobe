@@ -77,7 +77,6 @@ DAT.Globe = function(container, opts) {
 
   var camera, scene, renderer, w, h;
   var mesh, atmosphere;
-  var pointArray = [];
   var overRenderer;
 
   var curZoomSpeed = 0;
@@ -186,14 +185,14 @@ DAT.Globe = function(container, opts) {
     var zSize = Math.max( size, 0.1 ); // avoid non-invertible matrix
 
     var pointName = 'point_'+lat+'_'+lng;
-    _.each(pointArray, function(point) {
-      if(point.name === pointName) {
-        point.scale.z = zSize;
-        eject = true;
+    var point = _.find(scene.children, function (child) {
+      if (child.name === pointName) {
+        child.scale.z = zSize;
+        return true;
       }
     });
 
-    if(eject) {
+    if (point) {
       return;
     }
 
@@ -225,7 +224,6 @@ DAT.Globe = function(container, opts) {
     }
 
     // store references to each point
-    pointArray.push(point);
     scene.add(point);
   }
 
@@ -310,27 +308,17 @@ DAT.Globe = function(container, opts) {
   }
 
   function render() {
-    /** custom rotation */
     if(opts.rotate) {
       target.x -= .001
     }
 
-    // var points = _.where(scene.children, {name : 'point'});
     for (var i = 0; i < scene.children.length; i++) {
       // loop through and decay each point
-      // var point = points[i];
       if (scene.children[i] && scene.children[i].name.indexOf('point') === 0) {
         // shrink/decay at this point
         scene.children[i].scale.z *= .99;
 
         if(scene.children[i].scale.z < .5) {
-          _.find(pointArray, function(point, index) {
-            if(point.name === scene.children[i].name) {
-              pointArray.splice(index, 1);
-              return true;
-            }
-          });
-
           // TODO profile the app to make sure there's no memory leak
           scene.remove(scene.children[i]);
         }
@@ -357,7 +345,6 @@ DAT.Globe = function(container, opts) {
   this.addData = addData;
   this.renderer = renderer;
   this.scene = scene;
-  this.pointArray = pointArray
   return this;
 
 };
