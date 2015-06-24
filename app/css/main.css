@@ -17,3 +17,13 @@ body {
   color: #000;
   padding: 0.2em 0;
 }
+
+.overlay {
+  position: absolute;
+  z-index: 1;
+}
+.header {
+  width: 100vw;
+  text-align:left;
+  margin-left:10px;
+}

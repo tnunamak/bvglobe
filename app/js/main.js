@@ -29,7 +29,7 @@ $(function () {
     $.ajax({
       url: iter++ % 2 === 0 ? url : url2,
       dataType: 'json',
-      cache: false,
+      cache: true,
       success: function (data) {
         var bucketSize = 1;
 
