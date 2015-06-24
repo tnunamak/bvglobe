@@ -2,7 +2,8 @@
   "name": "temp",
   "version": "0.0.0",
   "dependencies": {
-    "threejs": ""
+    "threejs": "",
+    "jquery": "~2.1.4",
+    "underscore": "~1.8.3"
   }
 }
-

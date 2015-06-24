@@ -201,6 +201,12 @@ DAT.Globe = function(container, opts) {
     pointArray.push(point);
     scene.add(point);
   }
+  function resetData() {
+    while (pointArray.length > 0) {
+      scene.remove(pointArray[0]);
+      pointArray.splice(0, 1);
+    }
+  }
   function onMouseDown(event) {
     event.preventDefault();
 
@@ -302,7 +308,7 @@ DAT.Globe = function(container, opts) {
 
   init();
   this.animate = animate;
-
+  this.resetData = resetData;
   this.addData = addData;
   this.renderer = renderer;
   this.scene = scene;
