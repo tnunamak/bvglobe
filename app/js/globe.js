@@ -18,16 +18,16 @@ DAT.Globe = function(container, opts) {
 
   var colorFn = opts.colorFn || function(x) {
     var c = new THREE.Color();
-    x = x * 0.01
-    var minHue = 0.0;
-    var maxHue = 0.6;
+    var minHue = 0.2;
+    var maxHue = 0.5;
     var hue = Math.min(1, minHue + (x * (maxHue - minHue)));
-    var saturation = 0.9;
+    var saturation = 0.7;
     var lightness = 0.5;
     c.setHSL(hue, saturation, lightness);
 
     return c;
   };
+
   var imgDir = opts.imgDir || '/globe/';
 
   var Shaders = {
@@ -109,7 +109,7 @@ DAT.Globe = function(container, opts) {
     shader = Shaders['earth'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
 
-    uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'world-blue.jpg');
+    uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'world-black.jpg');
 
     material = new THREE.ShaderMaterial({
       uniforms: uniforms,
@@ -171,26 +171,14 @@ DAT.Globe = function(container, opts) {
   function addData(data) {
     var lat, lng, size, color;
 
-    function normalize (data) {
-      var nums = _.pluck(data, 'count');
-      var ratio = Math.max.apply(Math, nums) / 100;
-      for (var i = 0; i < nums.length; i++) {
-        nums[i] = Math.round(nums[i] / ratio);
-      }
-      return nums;
-    }
-
-    var normalizedMagnitudes = normalize(data);
-
     for (var i = 0; i < data.length; i++) {
       lat = data[i].latitude;
       lng = data[i].longitude;
-      size = normalizedMagnitudes[i]; //magnitude
+      size = _.pluck(data, 'count');
       color = colorFn(size);
 
-      addPoint(lat, lng, size, color);
+      addPoint(lat, lng, size * 200, color);
     }
-
   };
 
   function addPoint(lat, lng, size, color) {

@@ -8,7 +8,6 @@ $(function () {
     window.globe = new DAT.Globe(container, {
       rotate: true
     });
-    console.log(globe);
 
     var xhr = new XMLHttpRequest();
     var url = '/globe/data.json';
@@ -23,6 +22,7 @@ $(function () {
   }
 
   var iter = 0;
+  var normalizationFactor;
 
   function requestData() {
     var dfd = new $.Deferred;
@@ -33,7 +33,21 @@ $(function () {
       success: function (data) {
         window.data = data;
         var bucketSize = 1;
-        _.each(_.groupBy(data, function(item, i) {
+
+        function getNormalizationFactor (data) {
+          var nums = _.pluck(data, 'count');
+          return 1 / Math.max.apply(Math, nums);
+        }
+
+        var normalizationFactor = getNormalizationFactor(data);
+
+        function normalize(item) {
+          item.count = item.count * normalizationFactor;
+        }
+
+        var normalizedData = _.each(data, normalize);
+
+        _.each(_.groupBy(normalizedData, function(item, i) {
           return Math.floor(i / bucketSize);
         }), function(bucket, i) {
           var step = queryDelta / data.length;
