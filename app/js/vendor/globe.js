@@ -194,7 +194,7 @@ DAT.Globe = function(container, opts) {
     var geometry = new THREE.BoxGeometry(0.75, 0.75, 1);
     geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-0.5));
     var point = new THREE.Mesh(geometry);
-
+    point.name = 'point';
     var phi = (90 - lat) * Math.PI / 180;
     var theta = (180 - lng) * Math.PI / 180;
 
@@ -309,8 +309,13 @@ DAT.Globe = function(container, opts) {
     if(opts.rotate)
       target.x += .001
     //
-    for (var i = 0; i < pointArray.length; i++) {
+    // var points = _.where(scene.children, {name : 'point'});
+    for (var i = 0; i < scene.children.length; i++) {
       // loop through and decay each point
+      // var point = points[i];
+      if (scene.children[i].name === 'point') {
+        //decay me?
+      }
     }
     zoom(curZoomSpeed);
 
