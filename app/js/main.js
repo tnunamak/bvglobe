@@ -1,4 +1,6 @@
 $(function () {
+  var queryDelta = 5000;
+
   if(!Detector.webgl){
     Detector.addGetWebGLMessage();
   } else {
@@ -16,7 +18,7 @@ $(function () {
       .then(function () {
         document.body.style.backgroundImage = 'none'; // remove loading
       });
-    // setInterval(requestData, 5000);
+    setInterval(requestData, queryDelta);
     globe.animate();
   }
 
@@ -31,7 +33,16 @@ $(function () {
       success: function (data) {
         window.data = data;
         // globe.resetData()
-        globe.addData(data);
+        var bucketSize = 1;
+        _.each(_.groupBy(data, function(item, i) {
+          return Math.floor(i / bucketSize);
+        }), function(bucket, i) {
+          var step = queryDelta / data.length;
+          var fuzzSize = 0.5;
+          var fuzz = Math.random() * fuzzSize + 1 - fuzzSize;
+          setTimeout(_.partial(globe.addData, bucket), i * step * fuzz);
+        });
+
         dfd.resolve();
       },
       error: function (jqXHR, textStatus, errorThrown) {
