@@ -10,8 +10,8 @@ $(function () {
     });
 
     var xhr = new XMLHttpRequest();
-    var url = '/globe/data.json';
-    var url2 = '/globe/data2.json';
+    var url = '/globe/data2000.json';
+    var url2 = '/globe/data2000.json';
     // var url = 'http://localhost:8080/globe/data.json';
     requestData()
       .then(function () {
@@ -31,7 +31,6 @@ $(function () {
       dataType: 'json',
       cache: false,
       success: function (data) {
-        window.data = data;
         var bucketSize = 1;
 
         function getNormalizationFactor (data) {
