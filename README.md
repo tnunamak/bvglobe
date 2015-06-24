@@ -1,1 +1,1 @@
-TL;DR - `npm install && node install && grunt serve`
+TL;DR - `npm install && grunt serve`
