@@ -16,11 +16,13 @@ var DAT = DAT || {};
 DAT.Globe = function(container, opts) {
   var opts = opts || {};
 
-  var c = new THREE.Color();
   var colorFn = opts.colorFn || function(x) {
-    var x = x * 0.01
-    var hue = ( 0.6 - ( x * 0.005 ) );
-    var saturation = 1.0;
+    var c = new THREE.Color();
+    x = x * 0.01
+    var minHue = 0.0;
+    var maxHue = 0.6;
+    var hue = Math.min(1, minHue + (x * (maxHue - minHue)));
+    var saturation = 0.9;
     var lightness = 0.5;
     c.setHSL(hue, saturation, lightness);
 
@@ -160,7 +162,8 @@ DAT.Globe = function(container, opts) {
       overRenderer = false;
     }, false);
 
-    target.y = 0.3
+    target.y = 0.3;
+    target.x = 3.5;
   }
 
   function addData(data) {
@@ -189,11 +192,29 @@ DAT.Globe = function(container, opts) {
   };
 
   function addPoint(lat, lng, size, color) {
+    var eject;
+    var zSize = Math.max( size, 0.1 ); // avoid non-invertible matrix
+
+    var pointName = 'point_'+lat+'_'+lng;
+    _.each(pointArray, function(point) {
+      if(point.name === pointName) {
+        point.scale.z = zSize;
+        eject = true;
+      }
+    });
+
+    if(eject) {
+      return;
+    }
 
     var geometry = new THREE.BoxGeometry(0.75, 0.75, 1);
     geometry.applyMatrix(new THREE.Matrix4().makeTranslation(0,0,-0.5));
-    var point = new THREE.Mesh(geometry);
-    point.name = 'point';
+    var point = new THREE.Mesh(geometry, new THREE.MeshBasicMaterial({
+                  color: 0xffffff,
+                  vertexColors: THREE.FaceColors,
+                  morphTargets: false
+                }));
+    point.name = pointName;
     var phi = (90 - lat) * Math.PI / 180;
     var theta = (180 - lng) * Math.PI / 180;
 
@@ -203,7 +224,7 @@ DAT.Globe = function(container, opts) {
 
     point.lookAt(mesh.position);
 
-    point.scale.z = Math.max( size, 0.1 ); // avoid non-invertible matrix
+    point.scale.z = zSize;
     point.updateMatrix();
 
     for (var i = 0; i < point.geometry.faces.length; i++) {
@@ -313,13 +334,20 @@ DAT.Globe = function(container, opts) {
     for (var i = 0; i < scene.children.length; i++) {
       // loop through and decay each point
       // var point = points[i];
-      if (scene.children[i] && scene.children[i].name === 'point') {
+      if (scene.children[i] && scene.children[i].name.indexOf('point') === 0) {
         // shrink/decay at this point
         scene.children[i].scale.z *= .99;
 
         if(scene.children[i].scale.z < .5) {
+          _.find(pointArray, function(point, index) {
+            if(point.name === scene.children[i].name) {
+              pointArray.splice(index, 1);
+              return true;
+            }
+          });
+
           // TODO profile the app to make sure there's no memory leak
-          scene.remove(scene.children[i])
+          scene.remove(scene.children[i]);
         }
       }
     }
