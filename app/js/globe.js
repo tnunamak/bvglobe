@@ -83,8 +83,10 @@ DAT.Globe = function(container, opts) {
   var curZoomSpeed = 0;
   var zoomSpeed = 50;
 
+  var startX = 3.5;
+  var startY = 0.3
   var mouse = { x: 0, y: 0 }, mouseOnDown = { x: 0, y: 0 };
-  var rotation = { x: 0, y: 0 },
+  var rotation = { x: startX, y: startY },
       target = { x: Math.PI*3/2, y: Math.PI / 6.0 },
       targetOnDown = { x: 0, y: 0 };
 
@@ -162,8 +164,8 @@ DAT.Globe = function(container, opts) {
       overRenderer = false;
     }, false);
 
-    target.y = 0.3;
-    target.x = 3.5;
+    target.y = startY;
+    target.x = startX;
   }
 
   function addData(data) {
@@ -322,7 +324,7 @@ DAT.Globe = function(container, opts) {
   function render() {
     /** custom rotation */
     if(opts.rotate) {
-      target.x += .001
+      target.x -= .001
     }
 
     // var points = _.where(scene.children, {name : 'point'});
