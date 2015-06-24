@@ -15,9 +15,9 @@ var DAT = DAT || {};
 
 DAT.Globe = function(container, opts) {
   opts = opts || {};
+  var c = new THREE.Color();
 
   var colorFn = opts.colorFn || function(x) {
-    var c = new THREE.Color();
     c.setHSL( ( 0.6 - ( x * 0.5 ) ), 1.0, 0.5 );
     return c;
   };
@@ -155,18 +155,19 @@ DAT.Globe = function(container, opts) {
     container.addEventListener('mouseout', function() {
       overRenderer = false;
     }, false);
+
+    target.y = 0.3
   }
 
-  function addData(data, opts) {
-    var lat, lng, size, color, i, step, colorFnWrapper;
+  function addData(data) {
+    var lat, lng, size, color;
 
-    opts.animated = opts.animated || false;
-    this.is_animated = opts.animated;
-    for (i = 0; i < data.length; i += 3) {
-      lat = data[i];
-      lng = data[i + 1];
-      size = data[i + 2] * 200; //magnitude
-      color = colorFn(data[i+2]);
+    for (var i = 0; i < data.length; i++) {
+      lat = data[i].latitude;
+      lng = data[i].longitude;
+      size = data[i].count / 10; //magnitude
+      color = colorFn(size);
+
       addPoint(lat, lng, size, color);
     }
   };
@@ -301,11 +302,8 @@ DAT.Globe = function(container, opts) {
 
   init();
   this.animate = animate;
-  target.y = 0.3
 
   this.addData = addData;
-  // this.createPoints = createPoints;
-  // this.resetData = resetData;
   this.renderer = renderer;
   this.scene = scene;
   this.pointArray = pointArray
