@@ -102,7 +102,6 @@ DAT.Globe = function(container, opts) {
     camera = new THREE.PerspectiveCamera(30, w / h, 1, 10000);
     camera.position.z = distance;
 
-
     shader = Shaders['earth'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
 
@@ -306,17 +305,25 @@ DAT.Globe = function(container, opts) {
 
   function render() {
     /** custom rotation */
-    if(opts.rotate)
+    if(opts.rotate) {
       target.x += .001
-    //
+    }
+
     // var points = _.where(scene.children, {name : 'point'});
     for (var i = 0; i < scene.children.length; i++) {
       // loop through and decay each point
       // var point = points[i];
-      if (scene.children[i].name === 'point') {
-        //decay me?
+      if (scene.children[i] && scene.children[i].name === 'point') {
+        // shrink/decay at this point
+        scene.children[i].scale.z *= .99;
+
+        if(scene.children[i].scale.z < .5) {
+          // TODO profile the app to make sure there's no memory leak
+          scene.remove(scene.children[i])
+        }
       }
     }
+
     zoom(curZoomSpeed);
 
     rotation.x += (target.x - rotation.x) * 0.1;
