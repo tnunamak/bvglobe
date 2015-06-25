@@ -173,7 +173,7 @@ DAT.Globe = function(container, opts) {
     for (var i = 0; i < data.length; i++) {
       lat = data[i].latitude;
       lng = data[i].longitude;
-      size = _.pluck(data, 'count');
+      size = data[i].count;
       color = colorFn(size);
 
       addPoint(lat, lng, size * 200, color);
@@ -182,7 +182,7 @@ DAT.Globe = function(container, opts) {
 
   function addPoint(lat, lng, size, color) {
     var eject;
-    var zSize = Math.max( size, 0.1 ); // avoid non-invertible matrix
+    var zSize = Math.max( size / 2, 0.1 ); // avoid non-invertible matrix
 
     var pointName = 'point_'+lat+'_'+lng;
     var point = _.find(scene.children, function (child) {

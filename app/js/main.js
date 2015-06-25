@@ -31,25 +31,25 @@ $(function () {
       dataType: 'json',
       cache: true,
       success: function (data) {
-        var bucketSize = 1;
 
         function getNormalizationFactor (data) {
           var nums = _.pluck(data, 'count');
           return 1 / Math.max.apply(Math, nums);
         }
 
-        var normalizationFactor = getNormalizationFactor(data);
-
         function normalize(item) {
           item.count = item.count * normalizationFactor;
         }
 
+        var bucketSize = 1;
+        var normalizationFactor = getNormalizationFactor(data);
         var normalizedData = _.each(data, normalize);
-
-        _.each(_.groupBy(normalizedData, function(item, i) {
+        var groups = _.groupBy(normalizedData, function(item, i) {
           return Math.floor(i / bucketSize);
-        }), function(bucket, i) {
-          var step = queryDelta / data.length;
+        });
+
+        _.each(groups, function(bucket, i) {
+          var step = queryDelta / _.size(groups); // should be groups
           var fuzzSize = 0.5;
           var fuzz = Math.random() * fuzzSize + 1 - fuzzSize;
           setTimeout(_.partial(globe.addData, bucket), i * step * fuzz);
