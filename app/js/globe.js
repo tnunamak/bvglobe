@@ -82,7 +82,7 @@ DAT.Globe = function(container, opts) {
   var curZoomSpeed = 0;
   var zoomSpeed = 50;
 
-  var startX = 3.5;
+  var startX = 5;
   var startY = 0.3
   var mouse = { x: 0, y: 0 }, mouseOnDown = { x: 0, y: 0 };
   var rotation = { x: startX, y: startY },

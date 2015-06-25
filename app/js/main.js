@@ -10,9 +10,9 @@ $(function () {
     });
 
     var xhr = new XMLHttpRequest();
-    var url = '/globe/data2000.json';
-    var url2 = '/globe/data2000.json';
-    // var url = 'http://localhost:8080/globe/data.json';
+    // var url = '/globe/data2000.json';
+    // var url2 = '/globe/data2000.json';
+    var url = 'http://10.200.18.172:8080/globe/data.json';
     requestData()
       .then(function () {
         document.body.style.backgroundImage = 'none'; // remove loading
@@ -27,7 +27,8 @@ $(function () {
   function requestData() {
     var dfd = new $.Deferred;
     $.ajax({
-      url: iter++ % 2 === 0 ? url : url2,
+      // url: iter++ % 2 === 0 ? url : url2,
+      url: url,
       dataType: 'json',
       cache: true,
       success: function (data) {
