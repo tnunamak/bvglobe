@@ -49,12 +49,13 @@ $(function () {
           return Math.floor(i / bucketSize);
         });
 
+        var step = queryDelta / _.size(groups); // should be groups
+        var fuzzSize = 0.5;
         _.each(groups, function(bucket, i) {
-          var step = queryDelta / _.size(groups); // should be groups
-          var fuzzSize = 0.5;
-          var fuzz = Math.random() * fuzzSize + 1 - fuzzSize;
-          setTimeout(_.partial(globe.addData, bucket), i * step * fuzz);
+          // var fuzz = Math.random() * fuzzSize + 1 - fuzzSize;
+          setTimeout(_.partial(globe.addData, bucket), i * step);
         });
+
         dfd.resolve();
       },
       error: function (jqXHR, textStatus, errorThrown) {
