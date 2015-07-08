@@ -13,8 +13,8 @@
 
 var DAT = DAT || {};
 
-DAT.Globe = function(container, opts) {
-  var opts = opts || {};
+DAT.Globe = function(container, options) {
+  var opts = options || {};
 
   var colorFn = opts.colorFn || function(x) {
     var c = new THREE.Color();
@@ -82,7 +82,7 @@ DAT.Globe = function(container, opts) {
   var curZoomSpeed = 0;
   var zoomSpeed = 50;
 
-  var startX = 5;
+  var startX = 3.5;
   var startY = 0.3
   var mouse = { x: 0, y: 0 }, mouseOnDown = { x: 0, y: 0 };
   var rotation = { x: startX, y: startY },

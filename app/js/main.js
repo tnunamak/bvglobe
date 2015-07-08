@@ -1,6 +1,9 @@
 $(function () {
-  var queryDelta = 5000;
+  var dataQueryDelta = 5000;
+  var statsQueryDelta = 1000;
 
+  var dataEndpointUrl = '../globe/data.json';
+  var statsEndpointUrl = '../globe/stats.json';
   if(!Detector.webgl){
     Detector.addGetWebGLMessage();
   } else {
@@ -9,47 +12,50 @@ $(function () {
       rotate: true
     });
 
-    var xhr = new XMLHttpRequest();
-    // var url = '/globe/data2000.json';
-    // var url2 = '/globe/data2000.json';
-    var url = 'http://10.200.18.172:8080/globe/data.json';
-    requestData()
-      .then(function () {
-        document.body.style.backgroundImage = 'none'; // remove loading
-      });
-    setInterval(requestData, queryDelta);
-    globe.animate();
+    requestData().then(function () {
+      document.body.style.backgroundImage = 'none'; // remove loading
+      // Show the globe
+      window.globe.animate();
+    });
+
+    setInterval(requestData, dataQueryDelta);
+    setInterval(requestStats, statsQueryDelta);
   }
 
-  var iter = 0;
-  var normalizationFactor;
-
-  function requestData() {
-    var dfd = new $.Deferred;
+  function requestStats () {
+    console.log('requesting stats');
     $.ajax({
-      // url: iter++ % 2 === 0 ? url : url2,
-      url: url,
+      url: statsEndpointUrl,
       dataType: 'json',
-      cache: true,
+      cache: false,
       success: function (data) {
+        console.log('received stats');
+      },
+      error: function (data) {
 
-        function getNormalizationFactor (data) {
-          var nums = _.pluck(data, 'count');
-          return 1 / Math.max.apply(Math, nums);
-        }
+      }
+    })
+  };
 
+  function requestData () {
+    var normalizationFactor;
+    var dfd = new $.Deferred();
+    $.ajax({
+      url: dataEndpointUrl,
+      dataType: 'json',
+      cache: false,
+      success: function (data) {
         function normalize(item) {
           item.count = item.count * normalizationFactor;
         }
-
         var bucketSize = 1;
-        var normalizationFactor = getNormalizationFactor(data);
-        var normalizedData = _.each(data, normalize);
+        var normalizationFactor = getNormalizationFactor(data.points);
+        var normalizedData = _.each(data.points, normalize);
         var groups = _.groupBy(normalizedData, function(item, i) {
           return Math.floor(i / bucketSize);
         });
 
-        var step = queryDelta / _.size(groups); // should be groups
+        var step = dataQueryDelta / _.size(groups); // should be groups
         var fuzzSize = 0.5;
         _.each(groups, function(bucket, i) {
           // var fuzz = Math.random() * fuzzSize + 1 - fuzzSize;
@@ -58,11 +64,17 @@ $(function () {
 
         dfd.resolve();
       },
-      error: function (jqXHR, textStatus, errorThrown) {
+      error: function (jqXHR, textStatus) {
         console.log('Error downloading data: '+textStatus);
         dfd.reject();
       }
     });
     return dfd;
+  }
+
+  /** utils */
+  function getNormalizationFactor (data) {
+    var nums = _.pluck(data, 'count');
+    return 1 / Math.max.apply(Math, nums);
   }
 });
