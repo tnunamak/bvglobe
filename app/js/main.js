@@ -4,6 +4,7 @@ $(function () {
 
   var dataEndpointUrl = '../globe/data.json';
   var statsEndpointUrl = '../globe/stats.json';
+
   if(!Detector.webgl){
     Detector.addGetWebGLMessage();
   } else {
@@ -13,7 +14,8 @@ $(function () {
     });
 
     requestData().then(function () {
-      document.body.style.backgroundImage = 'none'; // remove loading
+      // remove loading
+      document.body.style.backgroundImage = 'none';
       // Show the globe
       window.globe.animate();
     });
@@ -23,13 +25,24 @@ $(function () {
   }
 
   function requestStats () {
-    console.log('requesting stats');
     $.ajax({
       url: statsEndpointUrl,
       dataType: 'json',
       cache: false,
       success: function (data) {
-        console.log('received stats');
+        // update total count
+        $('#totalPageViews').text(data.count);
+        var since = new Date(Date.now() - data.lastTimestamp).toLocaleString();
+        $('#since').text(since);
+        // update countries
+        var $list = $('<ol></ol>');
+        var $li;
+        _.each(data.countries, function (countryData) {
+          $li = $('<li></li>');
+          $li.text(countryData.name + ' - '+ countryData.count);
+          $list.append($li);
+        });
+        $('#countryStats').html($list)
       },
       error: function (jqXHR, textStatus) {
         console.log('Error downloading stats: '+textStatus);
