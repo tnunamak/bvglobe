@@ -25,13 +25,16 @@ $(function () {
       // Show the globe
       window.globe.animate();
     });
-    requestStats();
+    requestStats().then(function () {
+      $('.overlay').show();
+    });
 
-    setInterval(requestData, DATA_QUERY_DELTA);
-    setInterval(requestStats, 5000);
+    // setInterval(requestData, DATA_QUERY_DELTA);
+    // setInterval(requestStats, 5000);
   }
 
   function requestStats () {
+    var dfd = new $.Deferred();
     var url = statsEndpointUrl + '?limit=10&since=' + statsSince.getTime();
     $.ajax({
       url: url,
@@ -41,19 +44,22 @@ $(function () {
         // update total count
         $('#totalPageViews').text(formatCount(data.count));
         // update countries
-        var $list = $('<ol></ol>');
-        var $li;
+        var $list = $('<div></div>');
+        var $el;
         _.each(data.countries, function (countryData) {
-          $li = $('<li></li>');
-          $li.text(countryData.name + ' - '+ formatCount(countryData.count));
-          $list.append($li);
+          $span = $('<span></span>');
+          $span.text(countryData.name + ' - '+ formatCount(countryData.count));
+          $list.append($span);
         });
-        $('#countryStats').html($list)
+        $('#countryStats').html($list);
+        dfd.resolve();
       },
       error: function (jqXHR, textStatus) {
         console.log('Error downloading stats: '+textStatus);
+        dfd.reject();
       }
-    })
+    });
+    return dfd;
   };
 
   function requestData () {
