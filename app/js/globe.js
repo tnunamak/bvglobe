@@ -332,8 +332,10 @@ DAT.Globe = function(container, options) {
   }
 
   function render() {
+    var rotationalSpeed = 0.0005;
+
     if(opts.rotate) {
-      target.x -= .001
+      target.x -= rotationalSpeed;
     }
 
     for (var i = 0; i < scene.children.length; i++) {
