@@ -28,7 +28,7 @@ DAT.Globe = function(container, opts) {
     return c;
   };
 
-  var imgDir = opts.imgDir || '/globe/';
+  var imgDir = opts.imgDir || 'globe/';
 
   var Shaders = {
     'earth' : {
