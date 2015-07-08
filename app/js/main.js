@@ -1,5 +1,5 @@
 $(function () {
-  var dataQueryDelta = 5000;
+  var DATA_QUERY_DELTA = 5000;
 
   // var dataEndpointUrl = '../globe/data.json';
   var dataSince = 0;
@@ -27,7 +27,7 @@ $(function () {
     });
     requestStats();
 
-    setInterval(requestData, dataQueryDelta);
+    setInterval(requestData, DATA_QUERY_DELTA);
     setInterval(requestStats, 5000);
   }
 
@@ -39,13 +39,13 @@ $(function () {
       cache: false,
       success: function (data) {
         // update total count
-        $('#totalPageViews').text(data.count);
+        $('#totalPageViews').text(formatCount(data.count));
         // update countries
         var $list = $('<ol></ol>');
         var $li;
         _.each(data.countries, function (countryData) {
           $li = $('<li></li>');
-          $li.text(countryData.name + ' - '+ countryData.count);
+          $li.text(countryData.name + ' - '+ formatCount(countryData.count));
           $list.append($li);
         });
         $('#countryStats').html($list)
@@ -76,7 +76,7 @@ $(function () {
           return Math.floor(i / bucketSize);
         });
 
-        var step = dataQueryDelta / _.size(groups); // should be groups
+        var step = DATA_QUERY_DELTA / _.size(groups); // should be groups
         _.each(groups, function(bucket, i) {
           setTimeout(_.partial(globe.addData, bucket), i * step);
         });
@@ -94,5 +94,9 @@ $(function () {
   function getNormalizationFactor (data) {
     var nums = _.pluck(data, 'count');
     return 1 / Math.max.apply(Math, nums);
+  }
+
+  function formatCount(number) {
+    return new Number(number).toLocaleString();
   }
 });
