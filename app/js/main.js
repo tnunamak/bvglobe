@@ -1,9 +1,15 @@
 $(function () {
   var dataQueryDelta = 5000;
-  var statsQueryDelta = 1000;
 
+  // var dataEndpointUrl = '../globe/data.json';
+  var dataSince = 0;
   var dataEndpointUrl = '../globe/data.json';
-  var statsEndpointUrl = '../globe/stats.json';
+
+  // var statsEndpointUrl = '../globe/stats.json';
+  var statsSince = new Date();
+  statsSince.setHours(0,0,0,0);// use local midnight.
+
+  var statsEndpointUrl = '../globe/statistics.json';
 
   if(!Detector.webgl){
     Detector.addGetWebGLMessage();
@@ -19,21 +25,21 @@ $(function () {
       // Show the globe
       window.globe.animate();
     });
+    requestStats();
 
     setInterval(requestData, dataQueryDelta);
-    setInterval(requestStats, statsQueryDelta);
+    setInterval(requestStats, 5000);
   }
 
   function requestStats () {
+    var url = statsEndpointUrl + '?limit=10&since=' + statsSince.getTime();
     $.ajax({
-      url: statsEndpointUrl,
+      url: url,
       dataType: 'json',
       cache: false,
       success: function (data) {
         // update total count
         $('#totalPageViews').text(data.count);
-        var since = new Date(Date.now() - data.lastTimestamp).toLocaleString();
-        $('#since').text(since);
         // update countries
         var $list = $('<ol></ol>');
         var $li;
@@ -53,11 +59,13 @@ $(function () {
   function requestData () {
     var normalizationFactor;
     var dfd = new $.Deferred();
+    var url = dataEndpointUrl + '?since=' + dataSince;
     $.ajax({
-      url: dataEndpointUrl,
+      url: url,
       dataType: 'json',
       cache: false,
       success: function (data) {
+        dataSince = data.time;
         function normalize(item) {
           item.count = item.count * normalizationFactor;
         }
