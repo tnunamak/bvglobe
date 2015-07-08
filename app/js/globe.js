@@ -96,6 +96,9 @@ DAT.Globe = function(container, options) {
   var PI_HALF = Math.PI / 2;
 
   function init() {
+    var earthGeometry = new THREE.SphereGeometry(200, 40, 30);
+
+    scene = new THREE.Scene();
 
     container.style.color = '#fff';
     container.style.font = '13px/20px Arial, sans-serif';
@@ -105,10 +108,6 @@ DAT.Globe = function(container, options) {
 
     camera = new THREE.PerspectiveCamera(30, w / h, 1, 10000);
     camera.position.z = distance;
-
-    scene = new THREE.Scene();
-
-    var earthGeometry = new THREE.SphereGeometry(200, 40, 30);
 
     addEarth(scene);
     atmosphereMesh = addAtmosphere(scene);
@@ -161,9 +160,26 @@ DAT.Globe = function(container, options) {
         fragmentShader: shader.fragmentShader
       });
 
+      material = new THREE.MeshLambertMaterial({
+        map: THREE.ImageUtils.loadTexture(imgDir+'/world-blue.jpg')
+      });
+
       var mesh = new THREE.Mesh(earthGeometry, material);
       mesh.rotation.y = Math.PI;
       scene.add(mesh);
+
+      function drawGMT() {
+        window.globe.addData([{latitude: 11, longitude: 0, count: .3, color: colorFn(.3)}]);
+        window.globe.addData([{latitude: 21, longitude: 0, count: .3, color: colorFn(.3)}]);
+        window.globe.addData([{latitude: 31, longitude: 0, count: .3, color: colorFn(.3)}]);
+        window.globe.addData([{latitude: 41, longitude: 0, count: .3, color: colorFn(.3)}]);
+        window.globe.addData([{latitude: 61, longitude: 0, count: .3, color: colorFn(.3)}]);
+        window.globe.addData([{latitude: 71, longitude: 0, count: .3, color: colorFn(.3)}]);
+        window.globe.addData([{latitude: 81, longitude: 0, count: .3, color: colorFn(.3)}]);
+        window.globe.addData([{latitude: 91, longitude: 0, count: .3, color: colorFn(.3)}]);
+      }
+
+      // setInterval(drawGMT, 500);
     }
 
     function addAtmosphere(scene) {
@@ -200,9 +216,25 @@ DAT.Globe = function(container, options) {
     }
 
     function addSunlight(scene) {
-      var light = new THREE.DirectionalLight(0xffffff, 1);
-      light.position.set(5, 3, 5);
+     var light = new THREE.DirectionalLight(0xffffff, 1);
+
+      updateSunlight();
+      setInterval(updateSunlight, 10000);
       scene.add(light);
+      scene.add(new THREE.AmbientLight(0x666666));
+
+      function updateSunlight () {
+        var angleAtMidnight =(170 * Math.PI / 180);
+        var d = new Date();
+        var startOfDayGmt = new Date().setHours(0,0,0,0) - (d.getTimezoneOffset() * 60000);
+        var timeElapsed = d.getTime() - (d.getTimezoneOffset() * 60000) - startOfDayGmt;
+
+        var millisPerDay = 86400000;
+        var percentDayElapsed = timeElapsed / millisPerDay;
+        var sunAngle = 2 * Math.PI * percentDayElapsed + angleAtMidnight;
+
+        light.position.set(Math.cos(sunAngle), 0, Math.sin(sunAngle));
+      }
     }
   }
 
