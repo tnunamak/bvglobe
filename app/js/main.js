@@ -29,8 +29,8 @@ $(function () {
       $('.overlay').show();
     });
 
-    // setInterval(requestData, DATA_QUERY_DELTA);
-    // setInterval(requestStats, 5000);
+    setInterval(requestData, DATA_QUERY_DELTA);
+    setInterval(requestStats, 5000);
   }
 
   function requestStats () {
