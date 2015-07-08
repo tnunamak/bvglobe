@@ -31,8 +31,8 @@ $(function () {
       success: function (data) {
         console.log('received stats');
       },
-      error: function (data) {
-
+      error: function (jqXHR, textStatus) {
+        console.log('Error downloading stats: '+textStatus);
       }
     })
   };

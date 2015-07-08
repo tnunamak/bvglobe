@@ -83,7 +83,7 @@ DAT.Globe = function(container, options) {
   var zoomSpeed = 50;
 
   var startX = 3.5;
-  var startY = 0.3
+  var startY = 0.3;
   var mouse = { x: 0, y: 0 }, mouseOnDown = { x: 0, y: 0 };
   var rotation = { x: startX, y: startY },
       target = { x: Math.PI*3/2, y: Math.PI / 6.0 },
@@ -165,6 +165,14 @@ DAT.Globe = function(container, options) {
 
     target.y = startY;
     target.x = startX;
+
+    // Allow resize of window.
+    window.addEventListener( 'resize', onWindowResize, false );
+    function onWindowResize(){
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize( window.innerWidth, window.innerHeight );
+    }
   }
 
   function addData(data) {
