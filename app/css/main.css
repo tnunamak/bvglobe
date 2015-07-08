@@ -7,8 +7,7 @@ body {
   background: #000000 url(../globe/loading.gif) center center no-repeat;
   color: #ffffff;
   font-family: sans-serif;
-  font-size: 13px;
-  line-height: 20px;
+  font-size: 17px;
   height: 100%;
 }
 .browsehappy {
@@ -19,10 +18,32 @@ body {
 }
 
 .overlay {
+  display:none;
   padding: 10px;
   position: absolute;
   z-index: 1;
 }
+h1 {
+  margin: 0 0;
+}
 .header {
   text-align:left;
+  margin-bottom:10px;
+  margin-top:10px;
+}
+#totalPageViews {
+  font-size:1.5em;
+}
+#countryStats span {
+  display:block;
+  margin-bottom:2px;
+}
+#countryStats span:nth-child(1) {
+  font-size: 1.7em;
+}
+#countryStats span:nth-child(2) {
+  font-size: 1.5em;
+}
+#countryStats span:nth-child(3) {
+  font-size: 1.3em;
 }
