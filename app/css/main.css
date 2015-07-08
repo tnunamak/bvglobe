@@ -19,10 +19,10 @@ body {
 }
 
 .overlay {
+  padding: 10px;
   position: absolute;
   z-index: 1;
 }
 .header {
   text-align:left;
-  margin-left:10px;
 }

@@ -281,6 +281,7 @@ DAT.Globe = function(container, options) {
   }
 
   function onMouseUp(event) {
+    target.y = startY;
     container.removeEventListener('mousemove', onMouseMove, false);
     container.removeEventListener('mouseup', onMouseUp, false);
     container.removeEventListener('mouseout', onMouseOut, false);
