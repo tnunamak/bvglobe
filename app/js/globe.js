@@ -28,7 +28,7 @@ DAT.Globe = function(container, options) {
     return c;
   };
 
-  var imgDir = opts.imgDir || 'globe/';
+  var imgDir = opts.imgDir || 'globe';
 
   var Shaders = {
     'earth' : {
@@ -108,7 +108,7 @@ DAT.Globe = function(container, options) {
     shader = Shaders['earth'];
     uniforms = THREE.UniformsUtils.clone(shader.uniforms);
 
-    uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'world-blue.jpg');
+    uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'/world-blue.jpg');
 
     material = new THREE.ShaderMaterial({
       uniforms: uniforms,
@@ -139,6 +139,22 @@ DAT.Globe = function(container, options) {
     mesh = new THREE.Mesh(geometry, material);
     mesh.scale.set( 1.1, 1.1, 1.1 );
     scene.add(mesh);
+
+    addStars(scene);
+
+    function addStars(scene) {
+      // create the geometry sphere
+      var geometry = new THREE.SphereGeometry(1000, 16, 16)
+
+      // create the material, using a texture of starfield
+      var material = new THREE.MeshBasicMaterial()
+      material.map = THREE.ImageUtils.loadTexture(imgDir + '/galaxy_starfield.png')
+      material.side = THREE.BackSide
+
+      // create the mesh based on geometry and material
+      var mesh = new THREE.Mesh(geometry, material)
+      scene.add(mesh);
+    }
 
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(w, h);
