@@ -16,6 +16,8 @@ var DAT = DAT || {};
 DAT.Globe = function(container, options) {
   var opts = options || {};
 
+  opts.atmosphereScale = opts.atmosphereScale || 1.09;
+
   var colorFn = opts.colorFn || function(x) {
     var c = new THREE.Color();
     var minHue = 0.2;
@@ -76,7 +78,7 @@ DAT.Globe = function(container, options) {
   };
 
   var camera, scene, renderer, w, h;
-  var mesh, atmosphere;
+  var atmosphereMesh, atmosphere;
   var overRenderer;
 
   var curZoomSpeed = 0;
@@ -98,63 +100,20 @@ DAT.Globe = function(container, options) {
     container.style.color = '#fff';
     container.style.font = '13px/20px Arial, sans-serif';
 
-    var shader, uniforms, material;
     w = container.offsetWidth || window.innerWidth;
     h = container.offsetHeight || window.innerHeight;
 
     camera = new THREE.PerspectiveCamera(30, w / h, 1, 10000);
     camera.position.z = distance;
 
-    shader = Shaders['earth'];
-    uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-
-    uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'/world-blue.jpg');
-
-    material = new THREE.ShaderMaterial({
-      uniforms: uniforms,
-      vertexShader: shader.vertexShader,
-      fragmentShader: shader.fragmentShader
-    });
-
-    var geometry = new THREE.SphereGeometry(200, 40, 30);
-
-    mesh = new THREE.Mesh(geometry, material);
-    mesh.rotation.y = Math.PI;
-
     scene = new THREE.Scene();
-    scene.add(mesh);
 
-    shader = Shaders['atmosphere'];
-    uniforms = THREE.UniformsUtils.clone(shader.uniforms);
+    var earthGeometry = new THREE.SphereGeometry(200, 40, 30);
 
-    material = new THREE.ShaderMaterial({
-      uniforms: uniforms,
-      vertexShader: shader.vertexShader,
-      fragmentShader: shader.fragmentShader,
-      side: THREE.BackSide,
-      blending: THREE.AdditiveBlending,
-      transparent: true
-    });
-
-    mesh = new THREE.Mesh(geometry, material);
-    mesh.scale.set( 1.1, 1.1, 1.1 );
-    scene.add(mesh);
-
+    addEarth(scene);
+    atmosphereMesh = addAtmosphere(scene);
     addStars(scene);
-
-    function addStars(scene) {
-      // create the geometry sphere
-      var geometry = new THREE.SphereGeometry(1000, 16, 16)
-
-      // create the material, using a texture of starfield
-      var material = new THREE.MeshBasicMaterial()
-      material.map = THREE.ImageUtils.loadTexture(imgDir + '/galaxy_starfield.png')
-      material.side = THREE.BackSide
-
-      // create the mesh based on geometry and material
-      var mesh = new THREE.Mesh(geometry, material)
-      scene.add(mesh);
-    }
+    addSunlight(scene);
 
     renderer = new THREE.WebGLRenderer({antialias: true});
     renderer.setSize(w, h);
@@ -188,6 +147,62 @@ DAT.Globe = function(container, options) {
       camera.aspect = window.innerWidth / window.innerHeight;
       camera.updateProjectionMatrix();
       renderer.setSize( window.innerWidth, window.innerHeight );
+    }
+
+    function addEarth(scene) {
+      var shader = Shaders['earth'];
+      var uniforms = THREE.UniformsUtils.clone(shader.uniforms);
+
+      uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'/world-blue.jpg');
+
+      var material = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: shader.vertexShader,
+        fragmentShader: shader.fragmentShader
+      });
+
+      var mesh = new THREE.Mesh(earthGeometry, material);
+      mesh.rotation.y = Math.PI;
+      scene.add(mesh);
+    }
+
+    function addAtmosphere(scene) {
+      var shader = Shaders['atmosphere'];
+      var uniforms = THREE.UniformsUtils.clone(shader.uniforms);
+
+      var material = new THREE.ShaderMaterial({
+        uniforms: uniforms,
+        vertexShader: shader.vertexShader,
+        fragmentShader: shader.fragmentShader,
+        side: THREE.BackSide,
+        blending: THREE.AdditiveBlending,
+        transparent: true
+      });
+
+      var mesh = new THREE.Mesh(earthGeometry, material);
+      mesh.scale.set(opts.atmosphereScale, opts.atmosphereScale, opts.atmosphereScale);
+      scene.add(mesh);
+      return mesh;
+    }
+
+    function addStars(scene) {
+      // create the geometry sphere
+      var geometry = new THREE.SphereGeometry(1000, 16, 16)
+
+      // create the material, using a texture of starfield
+      var material = new THREE.MeshBasicMaterial()
+      material.map = THREE.ImageUtils.loadTexture(imgDir + '/galaxy_starfield.png')
+      material.side = THREE.BackSide
+
+      // create the mesh based on geometry and material
+      var mesh = new THREE.Mesh(geometry, material)
+      scene.add(mesh);
+    }
+
+    function addSunlight(scene) {
+      var light = new THREE.DirectionalLight(0xffffff, 1);
+      light.position.set(5, 3, 5);
+      scene.add(light);
     }
   }
 
@@ -235,7 +250,7 @@ DAT.Globe = function(container, options) {
     point.position.y = 200 * Math.cos(phi);
     point.position.z = 200 * Math.sin(phi) * Math.sin(theta);
 
-    point.lookAt(mesh.position);
+    point.lookAt(atmosphereMesh.position);
 
     point.scale.z = zSize;
     point.updateMatrix();
@@ -362,7 +377,7 @@ DAT.Globe = function(container, options) {
     camera.position.y = distance * Math.sin(rotation.y);
     camera.position.z = distance * Math.cos(rotation.x) * Math.cos(rotation.y);
 
-    camera.lookAt(mesh.position);
+    camera.lookAt(atmosphereMesh.position);
 
     renderer.render(scene, camera);
   }
