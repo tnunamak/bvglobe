@@ -154,13 +154,7 @@ DAT.Globe = function(container, options) {
 
       uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'/world-blue.jpg');
 
-      var material = new THREE.ShaderMaterial({
-        uniforms: uniforms,
-        vertexShader: shader.vertexShader,
-        fragmentShader: shader.fragmentShader
-      });
-
-      material = new THREE.MeshLambertMaterial({
+      var material = new THREE.MeshLambertMaterial({
         map: THREE.ImageUtils.loadTexture(imgDir+'/world-blue.jpg')
       });
 
@@ -224,14 +218,16 @@ DAT.Globe = function(container, options) {
       scene.add(new THREE.AmbientLight(0x666666));
 
       function updateSunlight () {
-        var angleAtMidnight =(170 * Math.PI / 180);
+        var angleAtMidnight = (0 * Math.PI / 180);
+
         var d = new Date();
         var startOfDayGmt = new Date().setHours(0,0,0,0) - (d.getTimezoneOffset() * 60000);
-        var timeElapsed = d.getTime() - (d.getTimezoneOffset() * 60000) - startOfDayGmt;
+        var timeElapsed = d.getTime() - startOfDayGmt;
 
-        var millisPerDay = 86400000;
+        var millisPerDay = 24 * 60 * 60 * 1000;
         var percentDayElapsed = timeElapsed / millisPerDay;
-        var sunAngle = 2 * Math.PI * percentDayElapsed + angleAtMidnight;
+
+        sunAngle = (2 * Math.PI * percentDayElapsed) + angleAtMidnight;
 
         light.position.set(Math.cos(sunAngle), 0, Math.sin(sunAngle));
       }
