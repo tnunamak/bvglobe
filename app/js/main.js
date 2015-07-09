@@ -77,13 +77,13 @@ $(function () {
   function requestData () {
     var normalizationFactor;
     var dfd = new $.Deferred();
-    var url = dataEndpointUrl + '?since=' + (dataSince - dataSinceBuffer);
+    var url = dataEndpointUrl + '?since=' + dataSince;
     $.ajax({
       url: url,
       dataType: 'json',
       cache: false,
       success: function (data) {
-        dataSince = data.time;
+        dataSince = (data.time - dataSinceBuffer);
         function normalize(item) {
           item.count = item.count * normalizationFactor;
         }
