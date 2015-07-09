@@ -4,19 +4,16 @@ $(function () {
   var $totalCount = $('#totalPageViews');
   var $lastSince = $('#lastSince');
 
-  var endpointPrefix = DEBUG ? '..' : 'http://qa-bvglobe.portal.bazaarvoice.com/api';
+  var endpointPrefix = DEBUG ? '..' : '../api';
   var DATA_QUERY_DELTA = 5000;
 
-  // var dataEndpointUrl = '../globe/data.json';
   var dataSince = 0;
-  // buffer 10 seconds to avoid getting partial buckets (less data)
-  var dataSinceBuffer = 10000;
+  var dataUntil = 5000;
   var dataEndpointUrl = endpointPrefix + '/globe/data.json';
 
-  // var statsEndpointUrl = '../globe/stats.json';
-  // var statsSince = new Date();
-  // statsSince.setHours(0,0,0,0);// use local midnight.
-  var statsSince = new Date(Date.now()); // use now temporarily
+  var statsSince = new Date();
+  statsSince.setHours(0,0,0,0);// use local midnight.
+  // var statsSince = new Date(Date.now()); // use now temporarily
   var statsEndpointUrl = endpointPrefix + '/globe/statistics.json';
 
   if(!Detector.webgl){
@@ -53,7 +50,7 @@ $(function () {
         var $country, $count, $tr;
         // update total count
         $totalCount.text(formatCount(data.count));
-        $lastSince.text(new Date(data.firstTimestamp).toLocaleString());
+        // $lastSince.text(new Date(data.firstTimestamp).toLocaleString());
         // update countries
         $countryStats.empty();
         _.each(data.countries, function (countryData) {
@@ -77,13 +74,16 @@ $(function () {
   function requestData () {
     var normalizationFactor;
     var dfd = new $.Deferred();
-    var url = dataEndpointUrl + '?since=' + dataSince;
+    var url = dataEndpointUrl +
+        '?since=' + dataSince +
+        '?until=' + dataUntil;
     $.ajax({
       url: url,
       dataType: 'json',
       cache: false,
       success: function (data) {
-        dataSince = (data.time - dataSinceBuffer);
+        dataSince = data.time - 10000;
+        dataUntil = data.time - 5000;
         function normalize(item) {
           item.count = item.count * normalizationFactor;
         }
