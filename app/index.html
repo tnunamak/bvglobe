@@ -25,16 +25,19 @@
             <p class="browsehappy">You are using an <strong>outdated</strong> browser. Please <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
         <![endif]-->
         <div class="overlay">
-            <div class="header">
+            <div class="header title">
                 <h1>Bazaarvoice Global Page Views</h1>
             </div>
             <div class="pageViews">
-                <span id="totalPageViews"></span> total page views since midnight
+                <span id="totalPageViews"></span> total page views since <span id="lastSince">midnight</span>
             </div>
-            <div class="header">
-                <h1>most active countries</h1>
+
+            <div>
+                <div class="header countryHeader">
+                    <h1>most active countries</h1>
+                </div>
+                <table id="countryStats"></table>
             </div>
-            <div id="countryStats"></div>
         </div>
         <div id="container"></div>
 

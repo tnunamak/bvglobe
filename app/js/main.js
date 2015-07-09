@@ -1,15 +1,21 @@
 $(function () {
+  var DEBUG = true;
+  var $countryStats = $('#countryStats');
+  var $totalCount = $('#totalPageViews');
+  var $lastSince = $('#lastSince');
+
+  var endpointPrefix = DEBUG ? '..' : 'http://qa-bvglobe.portal.bazaarvoice.com/api';
   var DATA_QUERY_DELTA = 5000;
 
   // var dataEndpointUrl = '../globe/data.json';
   var dataSince = 0;
-  var dataEndpointUrl = '../globe/data.json';
+  var dataEndpointUrl = endpointPrefix + '/globe/data.json';
 
   // var statsEndpointUrl = '../globe/stats.json';
-  var statsSince = new Date();
-  statsSince.setHours(0,0,0,0);// use local midnight.
-
-  var statsEndpointUrl = '../globe/statistics.json';
+  // var statsSince = new Date();
+  // statsSince.setHours(0,0,0,0);// use local midnight.
+  var statsSince = new Date(Date.now()); // use now temporarily
+  var statsEndpointUrl = endpointPrefix + '/globe/statistics.json';
 
   if(!Detector.webgl){
     Detector.addGetWebGLMessage();
@@ -42,17 +48,20 @@ $(function () {
       dataType: 'json',
       cache: false,
       success: function (data) {
+        var $country, $count, $tr;
         // update total count
-        $('#totalPageViews').text(formatCount(data.count));
+        $totalCount.text(formatCount(data.count));
+        $lastSince.text(new Date(data.firstTimestamp).toLocaleString());
         // update countries
-        var $list = $('<div></div>');
-        var $el;
+        $countryStats.empty();
         _.each(data.countries, function (countryData) {
-          $span = $('<span></span>');
-          $span.text(countryData.name + ' - '+ formatCount(countryData.count));
-          $list.append($span);
+          $tr = $('<tr></tr>')
+          $country = $('<td></td>').text(countryData.name);
+          $count = $('<td></td>').text(formatCount(countryData.count));
+          $tr.append($country);
+          $tr.append($count);
+          $countryStats.append($tr);
         });
-        $('#countryStats').html($list);
         dfd.resolve();
       },
       error: function (jqXHR, textStatus) {

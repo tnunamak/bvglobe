@@ -19,31 +19,55 @@ body {
 
 .overlay {
   display:none;
-  padding: 10px;
   position: absolute;
-  z-index: 1;
+  height: auto;
+  width: auto;
+  top:0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  margin: 20px;
 }
 h1 {
-  margin: 0 0;
+  margin-top:0;
+  margin-bottom:0;
+}
+/* positioning */
+.title {
+  width: 100%;
+  text-align:center;
+  bottom: 0;
+}
+
+.pageViews {
+  top: 0;
+  right: 0;
+}
+
+.overlay > div {
+  position: absolute;
+  z-index:1;
 }
 .header {
-  text-align:left;
-  margin-bottom:10px;
-  margin-top:10px;
+  font-size:1.3em;
+  margin-bottom: 5px;
 }
+/** country stats */
 #totalPageViews {
-  font-size:1.5em;
+  font-size:2em;
 }
-#countryStats span {
-  display:block;
-  margin-bottom:2px;
+#countryStats tr {
+  line-height:25px;
 }
-#countryStats span:nth-child(1) {
+#countryStats tr:nth-child(1) {
   font-size: 1.7em;
+  line-height:32px;
 }
-#countryStats span:nth-child(2) {
+#countryStats tr:nth-child(2) {
+  line-height:32px;
   font-size: 1.5em;
 }
-#countryStats span:nth-child(3) {
+#countryStats tr:nth-child(3) {
+  line-height:32px;
   font-size: 1.3em;
 }
