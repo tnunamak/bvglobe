@@ -76,7 +76,7 @@ $(function () {
     var dfd = new $.Deferred();
     var url = dataEndpointUrl +
         '?since=' + dataSince +
-        '?until=' + dataUntil;
+        '&until=' + dataUntil;
     $.ajax({
       url: url,
       dataType: 'json',

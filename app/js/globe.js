@@ -390,7 +390,10 @@ DAT.Globe = function(container, options) {
 
         if(scene.children[i].scale.z < .5) {
           // TODO profile the app to make sure there's no memory leak
-          scene.remove(scene.children[i]);
+          var child = scene.children[i];
+          scene.remove(child);
+          child.geometry.dispose();
+          child.material.dispose();
         }
       }
     }
