@@ -9,6 +9,8 @@ $(function () {
 
   // var dataEndpointUrl = '../globe/data.json';
   var dataSince = 0;
+  // buffer 10 seconds to avoid getting partial buckets (less data)
+  var dataSinceBuffer = 10000;
   var dataEndpointUrl = endpointPrefix + '/globe/data.json';
 
   // var statsEndpointUrl = '../globe/stats.json';
@@ -75,7 +77,7 @@ $(function () {
   function requestData () {
     var normalizationFactor;
     var dfd = new $.Deferred();
-    var url = dataEndpointUrl + '?since=' + dataSince;
+    var url = dataEndpointUrl + '?since=' + dataSince - dataSinceBuffer;
     $.ajax({
       url: url,
       dataType: 'json',
