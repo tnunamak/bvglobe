@@ -77,7 +77,7 @@ $(function () {
   function requestData () {
     var normalizationFactor;
     var dfd = new $.Deferred();
-    var url = dataEndpointUrl + '?since=' + dataSince - dataSinceBuffer;
+    var url = dataEndpointUrl + '?since=' + (dataSince - dataSinceBuffer);
     $.ajax({
       url: url,
       dataType: 'json',
