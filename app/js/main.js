@@ -25,12 +25,13 @@ $(function () {
       // Show the globe
       window.globe.animate();
     });
+
     requestStats().then(function () {
       $('.overlay').show();
     });
 
     setInterval(requestData, DATA_QUERY_DELTA);
-    setInterval(requestStats, 5000);
+    setInterval(requestStats, 1000);
   }
 
   function requestStats () {

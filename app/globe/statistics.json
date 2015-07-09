@@ -1,7 +1,7 @@
 {
   "count": 53885638,
-  "firstTimestamp": 1436328000,
-  "lastTimestamp": 1436364763,
+  "firstTimestamp": 1436328000000,
+  "lastTimestamp": 1436364763000,
   "countries": [
     {
       "name": "USA",
