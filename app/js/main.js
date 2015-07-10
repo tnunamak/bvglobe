@@ -1,5 +1,5 @@
 $(function () {
-  var DEBUG = true;
+  var DEBUG = false;
   var $countryStats = $('#countryStats');
   var $totalCount = $('#totalPageViews');
   var $lastSince = $('#lastSince');
@@ -50,7 +50,6 @@ $(function () {
         var $country, $count, $tr;
         // update total count
         $totalCount.text(formatCount(data.count));
-        // $lastSince.text(new Date(data.firstTimestamp).toLocaleString());
         // update countries
         $countryStats.empty();
         _.each(data.countries, function (countryData) {
