@@ -83,20 +83,24 @@ $(function () {
       success: function (data) {
         dataSince = data.time - 10000;
         dataUntil = data.time - 5000;
-        function normalize(item) {
-          item.count = item.count * normalizationFactor;
-        }
-        var bucketSize = 1;
-        var normalizationFactor = getNormalizationFactor(data.points);
-        var normalizedData = _.each(data.points, normalize);
-        var groups = _.groupBy(normalizedData, function(item, i) {
-          return Math.floor(i / bucketSize);
+
+        var flattenedData = _.flatten(_.map(data.points, function(point) {
+          return _.map(_.range(point.count), function(i) {
+            return _.defaults( { count: 1 }, point);
+          });
+        }));
+
+        var step = DATA_QUERY_DELTA / _.size(flattenedData);
+
+        _.each(flattenedData, function(point, i) {
+          setTimeout(_.partial(globe.addData, point), i * step);
+
+          if (i === flattenedData.length - 1) {
+            setTimeout(function() {
+            }, i * step);
+          }
         });
 
-        var step = DATA_QUERY_DELTA / _.size(groups); // should be groups
-        _.each(groups, function(bucket, i) {
-          setTimeout(_.partial(globe.addData, bucket), i * step);
-        });
         dfd.resolve();
       },
       error: function (jqXHR, textStatus) {

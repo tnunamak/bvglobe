@@ -33,31 +33,6 @@ DAT.Globe = function(container, options) {
   var imgDir = opts.imgDir || 'globe';
 
   var Shaders = {
-    'earth' : {
-      uniforms: {
-        'texture': { type: 't', value: null }
-      },
-      vertexShader: [
-        'varying vec3 vNormal;',
-        'varying vec2 vUv;',
-        'void main() {',
-          'gl_Position = projectionMatrix * modelViewMatrix * vec4( position, 1.0 );',
-          'vNormal = normalize( normalMatrix * normal );',
-          'vUv = uv;',
-        '}'
-      ].join('\n'),
-      fragmentShader: [
-        'uniform sampler2D texture;',
-        'varying vec3 vNormal;',
-        'varying vec2 vUv;',
-        'void main() {',
-          'vec3 diffuse = texture2D( texture, vUv ).xyz;',
-          'float intensity = 1.05 - dot( vNormal, vec3( 0.0, 0.0, 1.0 ) );',
-          'vec3 atmosphere = vec3( 1.0, 1.0, 1.0 ) * pow( intensity, 3.0 );',
-          'gl_FragColor = vec4( diffuse + atmosphere, 1.0 );',
-        '}'
-      ].join('\n')
-    },
     'atmosphere' : {
       uniforms: {},
       vertexShader: [
@@ -82,7 +57,6 @@ DAT.Globe = function(container, options) {
   var overRenderer;
 
   var curZoomSpeed = 0;
-  var zoomSpeed = 50;
 
   var startX = 3.5;
   var startY = 0.3;
@@ -92,11 +66,14 @@ DAT.Globe = function(container, options) {
       targetOnDown = { x: 0, y: 0 };
 
   var distance = 100000, distanceTarget = 100000;
-  var padding = 40;
   var PI_HALF = Math.PI / 2;
+  var EARTH_RADIUS = 200;
+  var MAX_PARTICLES = 10000;
+  var particles;
+  var particlePool = [];
 
   function init() {
-    var earthGeometry = new THREE.SphereGeometry(200, 40, 30);
+    var earthGeometry = new THREE.SphereGeometry(EARTH_RADIUS, 40, 30);
 
     scene = new THREE.Scene();
 
@@ -109,6 +86,7 @@ DAT.Globe = function(container, options) {
     camera = new THREE.PerspectiveCamera(30, w / h, 1, 10000);
     camera.position.z = distance;
 
+    addPointCloud(scene);
     addEarth(scene);
     atmosphereMesh = addAtmosphere(scene);
     addStars(scene);
@@ -148,12 +126,46 @@ DAT.Globe = function(container, options) {
       renderer.setSize( window.innerWidth, window.innerHeight );
     }
 
+    function addPointCloud(scene) {
+      var particleSize = '1.5';
+      var particleGeometry = new THREE.Geometry();
+      var particleMaterial = new THREE.ShaderMaterial({
+        uniforms: {
+          color: { type: "c", value: new THREE.Color( 0x00ff00 ) }
+        },
+        attributes: {
+          alpha: { type: 'f', value: [] }
+        },
+        transparent: true,
+        vertexShader: ['attribute float alpha;',
+          'varying float vAlpha;',
+          'void main() {',
+              'vAlpha = alpha;',
+              'vec4 mvPosition = modelViewMatrix * vec4( position, 1.0 );',
+              'gl_PointSize = ' + particleSize + ';',
+              'gl_Position = projectionMatrix * mvPosition;',
+          '}'].join('\n'),
+        fragmentShader: ['uniform vec3 color;',
+          'varying float vAlpha;',
+          'void main() {',
+              'gl_FragColor = vec4( color, vAlpha );',
+          '}'].join('\n')
+      });
+
+      // pre-allocate particles
+      _.each(_.range(MAX_PARTICLES), function(i) {
+        particleMaterial.attributes.alpha.value[i] = 1;
+        var particle = new THREE.Vector3(0, 0, 0);
+        particlePool.push(particle);
+        particleGeometry.vertices.push(particle);
+      });
+
+      particles = new THREE.PointCloud( particleGeometry, particleMaterial );
+      particles.name = 'point_cloud';
+      scene.add(particles);
+    }
+
     function addEarth(scene) {
-      var shader = Shaders['earth'];
-      var uniforms = THREE.UniformsUtils.clone(shader.uniforms);
-
-      uniforms['texture'].value = THREE.ImageUtils.loadTexture(imgDir+'/world-blue.jpg');
-
       var material = new THREE.MeshLambertMaterial({
         map: THREE.ImageUtils.loadTexture(imgDir+'/world-blue.jpg')
       });
@@ -161,19 +173,6 @@ DAT.Globe = function(container, options) {
       var mesh = new THREE.Mesh(earthGeometry, material);
       mesh.rotation.y = Math.PI;
       scene.add(mesh);
-
-      function drawGMT() {
-        window.globe.addData([{latitude: 11, longitude: 0, count: .3, color: colorFn(.3)}]);
-        window.globe.addData([{latitude: 21, longitude: 0, count: .3, color: colorFn(.3)}]);
-        window.globe.addData([{latitude: 31, longitude: 0, count: .3, color: colorFn(.3)}]);
-        window.globe.addData([{latitude: 41, longitude: 0, count: .3, color: colorFn(.3)}]);
-        window.globe.addData([{latitude: 61, longitude: 0, count: .3, color: colorFn(.3)}]);
-        window.globe.addData([{latitude: 71, longitude: 0, count: .3, color: colorFn(.3)}]);
-        window.globe.addData([{latitude: 81, longitude: 0, count: .3, color: colorFn(.3)}]);
-        window.globe.addData([{latitude: 91, longitude: 0, count: .3, color: colorFn(.3)}]);
-      }
-
-      // setInterval(drawGMT, 500);
     }
 
     function addAtmosphere(scene) {
@@ -227,7 +226,7 @@ DAT.Globe = function(container, options) {
         var millisPerDay = 24 * 60 * 60 * 1000;
         var percentDayElapsed = timeElapsed / millisPerDay;
 
-        sunAngle = (2 * Math.PI * percentDayElapsed) + angleAtMidnight;
+        var sunAngle = (2 * Math.PI * percentDayElapsed) + angleAtMidnight;
 
         light.position.set(Math.cos(sunAngle), 0, Math.sin(sunAngle));
       }
@@ -237,17 +236,27 @@ DAT.Globe = function(container, options) {
   function addData(data) {
     var lat, lng, size, color;
 
-    for (var i = 0; i < data.length; i++) {
-      lat = data[i].latitude;
-      lng = data[i].longitude;
-      size = data[i].count;
+    if(_.isArray(data)) {
+      for (var i = 0; i < data.length; i++) {
+        add(data[i]);
+      }
+    } else {
+      add(data);
+    }
+
+    function add(point) {
+      console.log('adding')
+      lat = point.latitude;
+      lng = point.longitude;
+      size = point.count;
       color = colorFn(size);
 
-      addPoint(lat, lng, size * 200, color);
+      addPoint(lat, lng, size, color);
     }
-  };
+  }
 
   function addPoint(lat, lng, size, color) {
+    /*
     var eject;
     var zSize = Math.max( size / 2, 0.1 ); // avoid non-invertible matrix
 
@@ -274,9 +283,9 @@ DAT.Globe = function(container, options) {
     var phi = (90 - lat) * Math.PI / 180;
     var theta = (180 - lng) * Math.PI / 180;
 
-    point.position.x = 200 * Math.sin(phi) * Math.cos(theta);
-    point.position.y = 200 * Math.cos(phi);
-    point.position.z = 200 * Math.sin(phi) * Math.sin(theta);
+    point.position.x = EARTH_RADIUS * Math.sin(phi) * Math.cos(theta);
+    point.position.y = EARTH_RADIUS * Math.cos(phi);
+    point.position.z = EARTH_RADIUS * Math.sin(phi) * Math.sin(theta);
 
     point.lookAt(atmosphereMesh.position);
 
@@ -288,10 +297,30 @@ DAT.Globe = function(container, options) {
     }
     if(point.matrixAutoUpdate){
       point.updateMatrix();
-    }
+    }*/
 
-    // store references to each point
-    scene.add(point);
+    _.each(_.range(size), function (i) {
+      var phi = (90 - lat) * Math.PI / 180;
+      var theta = (180 - lng) * Math.PI / 180;
+
+      var particle = particlePool.pop();
+
+      if(_.isUndefined(particle)) {
+        console.log('The pool ran out of particles');
+        return;
+      }
+
+      add();
+
+      function add() {
+        particle.x = EARTH_RADIUS * Math.sin(phi) * Math.cos(theta);
+        particle.y = EARTH_RADIUS * Math.cos(phi);
+        particle.z = EARTH_RADIUS * Math.sin(phi) * Math.sin(theta);
+
+        particles.geometry.verticesNeedUpdate = true;
+      }
+    });
+
   }
 
   function onMouseDown(event) {
@@ -383,14 +412,38 @@ DAT.Globe = function(container, options) {
     }
 
     for (var i = 0; i < scene.children.length; i++) {
-      // loop through and decay each point
-      if (scene.children[i] && scene.children[i].name.indexOf('point') === 0) {
-        // shrink/decay at this point
-        scene.children[i].scale.z *= .99;
+      var child = scene.children[i];
 
-        if(scene.children[i].scale.z < .5) {
-          // TODO profile the app to make sure there's no memory leak
-          var child = scene.children[i];
+      if (child && child.name.indexOf('point') === 0) { // TODO change name to particles
+        _.each(child.geometry.vertices, function(particle, j) {
+          var alpha = child.material.attributes.alpha;
+
+          if(particle.x !== 0 || particle.y !== 0 || particle.z !== 0) {
+            particle.multiplyScalar(1.002);
+            alpha.value[j] *= 0.985;
+
+            if (alpha.value[j] < 0.01) {
+              particle.x = 0;
+              particle.y = 0;
+              particle.z = 0;
+
+              alpha.value[j] = 1;
+              particlePool.push(particle);
+            } else {
+              child.geometry.verticesNeedUpdate = true;
+            }
+
+            alpha.needsUpdate = true;
+          }
+
+        });
+      }
+      // loop through and decay each point
+      else if (child && child.name.indexOf('point') === 0) { // TODO add support back in for decaying bars
+        // shrink/decay at this point
+        child.scale.z *= .996;
+
+        if(child.scale.z < .5) {
           scene.remove(child);
           child.geometry.dispose();
           child.material.dispose();
@@ -408,7 +461,7 @@ DAT.Globe = function(container, options) {
     camera.position.y = distance * Math.sin(rotation.y);
     camera.position.z = distance * Math.cos(rotation.x) * Math.cos(rotation.y);
 
-    camera.lookAt(atmosphereMesh.position);
+    camera.lookAt(new THREE.Vector3(0, 0, 0));
 
     renderer.render(scene, camera);
   }
@@ -419,6 +472,5 @@ DAT.Globe = function(container, options) {
   this.renderer = renderer;
   this.scene = scene;
   return this;
-
 };
 
