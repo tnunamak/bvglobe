@@ -245,7 +245,6 @@ DAT.Globe = function(container, options) {
     }
 
     function add(point) {
-      console.log('adding')
       lat = point.latitude;
       lng = point.longitude;
       size = point.count;
